@@ -1,0 +1,137 @@
+import blockhelper.*;
+import com.nolimitscoaster.*;
+
+/**
+ * This script implements a Block System Controller for the Cursing Mommy Coaster.
+ * It uses a couple of helper classes that take care of the dirty details.
+ * Feel free to make use of the helper classes for implementing similar scripted block systems.
+ */
+public class BlockScript extends Script
+{ 
+  // The name of the script for error messages
+  private static final String scriptName = "BlockScript";
+  
+  // Member variables...
+  private BlockHelperController _blockController;
+  
+  /**
+   * This method overrides the default implementation of onInit() from the Script class.
+   * Gets called at script start up.
+   */
+  public bool onInit()
+  {
+    String name = "fuck";
+    System.out.println("hello " + name);
+    // Detect the coaster this script belongs to...
+    Coaster coaster = sim.getCoasterForEntityId(getParentEntityId());
+    if (coaster == null)
+    {
+      System.err.println(scriptName + ": Not attached to coaster");
+      return false;
+    }
+    
+    // create a block controller...
+    _blockController = new BlockHelperController(coaster);
+    
+    /////
+    
+    // Create all blocks... names and types must match with the block names from inside the Editor
+    
+    BlockHelper blockA = _blockController.createBrakeFwdToBwdSpikeBlock("Brake 1");
+    BlockHelper blockB = _blockController.createBrakeBlock("Brake 3");
+    //BlockHelper blockC = _blockController.createBrakeBlock("Brake 3");
+    BlockHelper stationBlock = _blockController.createStationBlock("Station");
+  
+    /////
+        
+    // Get the switches
+
+    name = "Reverse Switch 1";
+    SpecialTrack reverse1Switch = coaster.getSpecialTrack(name);
+    if (reverse1Switch == null)
+    {
+      System.err.println(scriptName + ": SpecialTrack '" + name + "' not found");
+      return false;
+    }
+    
+    name = "Reverse Switch 2";
+    SpecialTrack reverse2Switch = coaster.getSpecialTrack(name);
+    if (reverse2Switch == null)
+    {
+      System.err.println(scriptName + ": SpecialTrack '" + name + "' not found");
+      return false;
+    }
+    
+    /////
+    
+    // Set block behaviour...  
+    
+    // This is done by adding conditions
+    // The conditions will decide if a train can proceed to the next block
+    // The conditions are processed in order of addition.
+    
+    // currently there are 3 types of conditions:
+    // 1) Check if a block is free (addConditionBlockFree(block))
+    // 2) Change and check a switch track (addConditionChangeSwitch(swithTrack, swithDirection, allowPrepare))
+    // 3) wait some time (addConditionWait(waitTime))
+    
+    // There are two condition queues, one for the forward direction and one for the backward direction. 
+    // The current queue is selected using selectFwdConditions() or selectBwdConditions()
+    // Depending on the current queue, the conditions are either added to the forward or backward queue.
+    
+    // The leave mode needs to be set, which is the typical direction of travel in auto mode
+    // There are 4 different leave modes (move forward, move backward, launch forward, launch backward)
+    
+    // The leave mode needs to match with the added conditions, e.g. that means if the leave mode is set to move forward,
+    // there needs to be at least one condition in the forward queue and vice versa.
+    
+    /*
+    beforeStationBlock.setLeaveModeMoveFwd();
+    beforeStationBlock.selectFwdConditions();
+    beforeStationBlock.addConditionBlockFree(stationExitBlock);
+    beforeStationBlock.selectBwdConditions();
+    beforeStationBlock.addConditionBlockFree(reverse2Block);
+    beforeStationBlock.addConditionChangeSwitch(reverse2Switch, 1, false);*/
+
+    blockA.setLeaveModeLaunchBwd();
+    blockA.selectBwdConditions();
+    blockA.addConditionBlockFree(blockB);
+    blockA.addConditionChangeSwitch(reverse1Switch, 1, false);
+    blockA.addConditionChangeSwitch(reverse2Switch, 1, true);
+
+    blockB.setLeaveModeMoveFwd();
+    blockB.selectFwdConditions();
+    blockB.addConditionBlockFree(stationBlock);
+    blockB.addConditionChangeSwitch(reverse2Switch, 0, false);
+    // blockB.selectFwdConditions();
+    // blockB.addConditionBlockFree(blockA);
+    // blockB.addConditionChangeSwitch(reverse1Switch, 1, false);
+    
+
+
+    // blockC.setLeaveModeMoveFwd();
+    // blockC.selectFwdConditions();
+    // blockC.addConditionBlockFree(stationBlock);
+    //blockC.addConditionChangeSwitch(reverse2Switch, 1, false);
+    //blockC.selectBwdConditions();
+    //blockC.addConditionBlockFree(stationBlock);
+
+    stationBlock.setLeaveModeMoveFwd();
+    stationBlock.selectFwdConditions();
+    stationBlock.addConditionBlockFree(blockA);
+    stationBlock.addConditionChangeSwitch(reverse1Switch, 0, true);
+           
+    return true;
+  }
+
+  /**
+   * This method overrides the default implementation of onNextFrame() from the Script class.
+   * Gets called for each frame.
+   */
+  public void onNextFrame(float tick)
+  { 
+    // process all blocks, needs to be called from onNextFrame
+    _blockController.process();
+  }
+
+}

@@ -1,0 +1,106 @@
+import blockhelper.*;
+import com.nolimitscoaster.*;
+
+/**
+ * This script implements a Block System Controller for the Cursing Mommy Coaster.
+ * It uses a couple of helper classes that take care of the dirty details.
+ * Feel free to make use of the helper classes for implementing similar scripted block systems.
+ */
+public class BlockScript extends Script
+{ 
+  // The name of the script for error messages
+  private static final String scriptName = "MyBlockScript";
+  
+  // Member variables...
+  private BlockHelperController blockController;
+  
+  /**
+   * This method overrides the default implementation of onInit() from the Script class.
+   * Gets called at script start up.
+   */
+  public bool onInit()
+  {
+    String name;
+
+    System.println("Hello " + name);
+    
+    // Detect the coaster this script belongs to...
+    Coaster coaster = sim.getCoasterForEntityId(getParentEntityId());
+    if (coaster == null)
+    {
+      System.err.println(scriptName + ": Not attached to coaster");
+      return false;
+    }
+    
+    // create a block controller...
+    blockController = new BlockHelperController(coaster);
+    
+    /////
+    
+    // Create all blocks... names and types must match with the block names from inside the Editor
+
+    BlockHelper blockA = blockController.createBrakeBlock("Brake 1");
+    BlockHelper blockB = blockController.createBrakeBlock("Brake 2");
+    BlockHelper blockC = blockController.createBrakeBlock("Brake 3");
+    BlockHelper blockD = blockController.createStationBlock("Station");
+        
+    // Get the switches
+
+    SpecialTrack reverseSwitch1 = coaster.getSpecialTrack("Reverse Switch 1");
+    SpecialTrack reverseSwitch2 = coaster.getSpecialTrack("Reverse Switch 2");
+    
+    // Set block behaviour...  
+    
+    // This is done by adding conditions
+    // The conditions will decide if a train can proceed to the next block
+    // The conditions are processed in order of addition.
+    
+    // currently there are 3 types of conditions:
+    // 1) Check if a block is free (addConditionBlockFree(block))
+    // 2) Change and check a switch track (addConditionChangeSwitch(swithTrack, swithDirection, allowPrepare))
+    // 3) wait some time (addConditionWait(waitTime))
+    
+    // There are two condition queues, one for the forward direction and one for the backward direction. 
+    // The current queue is selected using selectFwdConditions() or selectBwdConditions()
+    // Depending on the current queue, the conditions are either added to the forward or backward queue.
+    
+    // The leave mode needs to be set, which is the typical direction of travel in auto mode
+    // There are 4 different leave modes (move forward, move backward, launch forward, launch backward)
+    
+    // The leave mode needs to match with the added conditions, e.g. that means if the leave mode is set to move forward,
+    // there needs to be at least one condition in the forward queue and vice versa.
+
+    blockA.setLeaveModeMoveBwd();
+    blockA.selectBwdConditions();
+    blockA.addConditionBlockFree(blockB);
+    blockA.addConditionChangeSwitch(reverseSwitch1, 0, false);
+    //blockA.addConditionChangeSwitch(reverseSwitch2, 1, true);
+
+    blockB.setLeaveModeMoveFwd();
+    blockB.selectFwdConditions();
+    blockB.addConditionBlockFree(blockC);
+
+    blockC.setLeaveModeMoveFwd();
+    blockC.selectFwdConditions();
+    blockC.addConditionBlockFree(blockA);
+    
+    blockD.setLeaveModeMoveFwd();
+    blockD.selectFwdConditions();
+    blockD.addConditionBlockFree(blockA);
+    
+    /////
+           
+    return true;
+  }
+
+  /**
+   * This method overrides the default implementation of onNextFrame() from the Script class.
+   * Gets called for each frame.
+   */
+  public void onNextFrame(float tick)
+  { 
+    // process all blocks, needs to be called from onNextFrame
+    blockController.process();
+  }
+
+}
