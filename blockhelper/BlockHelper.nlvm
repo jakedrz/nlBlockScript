@@ -786,19 +786,24 @@ public class BlockHelper
       {
         //_block.setState(STATE_BLOCK_BEHIND_TRIGGER);
         _block.getSection().setTransportsLaunchFwdOn(); 
+        _block.getSection().setBrakesOff();
         _block.setState(STATE_BLOCK_LEAVING_INTO_ABYSS); 
         System.out.println("STATE_BLOCK_LEAVING_INTO_ABYSS");
       }
       break;
     case STATE_BLOCK_BEFORE_TRIGGER_BWD:
-      prepareNextBlockEntering();
-      _block.getSection().setBrakesTrim();
-      _block.getSection().setTransportsStandardBwdDependingOnBrake();
-      if (_block.getSection().isTrainBeforeBrakeTrigger())
-      {
-        _block.setState(STATE_BLOCK_BEHIND_TRIGGER); 
-      }
-      break;    
+    prepareNextBlockEntering();
+    _block.getSection().setBrakesTrim();
+    _block.getSection().setTransportsStandardBwdDependingOnBrake();
+    if (_block.getSection().isTrainBeforeBrakeTrigger())
+    {
+      //_block.setState(STATE_BLOCK_BEHIND_TRIGGER);
+      _block.getSection().setTransportsLaunchBwdOn(); 
+      _block.getSection().setBrakesOff();
+      _block.setState(STATE_BLOCK_LEAVING_INTO_ABYSS); 
+      System.out.println("STATE_BLOCK_LEAVING_INTO_ABYSS");
+    }
+    break; 
     case STATE_BLOCK_LEAVING_INTO_ABYSS:
       processNextBlockEntering();
       if (_block.getSection().isTrainOnSection()==false)
@@ -811,8 +816,9 @@ public class BlockHelper
     case STATE_BLOCK_LOST_IN_ABYSS:
       if(processNextBlockEntering())
       {
-        _block.getSection().setTransportsLaunchBwdOn();
-        _block.getSection().setBrakesTrim();
+        // _block.getSection().setTransportsLaunchBwdOn();
+        if(_leaveMode == LEAVE_MODE_LAUNCH_BWD || _leaveMode == LEAVE_MODE_LAUNCH_FWD)
+          _block.getSection().setBrakesOff();
         if(_block.getSection().isTrainOnSection())
         {
           _block.setState(STATE_BLOCK_RETURNING_FROM_ABYSS);
@@ -828,12 +834,41 @@ public class BlockHelper
     case STATE_BLOCK_RETURNING_FROM_ABYSS:
       if(processNextBlockEntering())
       {
-        if(_block.getSection().isTrainBeforeBrakeTrigger())
+        if (_leaveMode == LEAVE_MODE_LAUNCH_BWD || _leaveMode == LEAVE_MODE_LAUNCH_FWD)
+        {
+          if(_leaveMode == LEAVE_MODE_LAUNCH_BWD)
+          {
+            _block.getSection().setTransportsLaunchBwdOn();
+          }
+          else
+          {
+            _block.getSection().setTransportsLaunchFwdOn();
+          }
+          _block.getSection().setBrakesOff();
+        }
+        else
+        {
+          if (_leaveMode == LEAVE_MODE_MOVE_BWD)
+          {
+            _block.getSection().setTransportsStandardBwdDependingOnBrake();
+          }
+          else
+          {
+            _block.getSection().setTransportsStandardFwdDependingOnBrake();
+          }
+          _block.getSection().setBrakesTrim();
+        }
+        if(_block.getSection().isTrainBeforeBrakeTrigger() && (_leaveMode == LEAVE_MODE_LAUNCH_BWD || _leaveMode == LEAVE_MODE_MOVE_BWD))
         {
           System.out.println("STATE_BLOCK_BEHIND_TRIGGER");
           _block.setState(STATE_BLOCK_BEHIND_TRIGGER);
-          _block.getSection().setTransportsLaunchBwdOn();
-          _block.getSection().setBrakesOff();
+          // _block.getSection().setTransportsLaunchBwdOn();
+        }
+        if(_block.getSection().isTrainBehindBrakeTrigger() && (_leaveMode == LEAVE_MODE_LAUNCH_FWD || _leaveMode == LEAVE_MODE_MOVE_FWD))
+        {
+          System.out.println("STATE_BLOCK_BEHIND_TRIGGER");
+          _block.setState(STATE_BLOCK_BEHIND_TRIGGER);
+          // _block.getSection().setTransportsLaunchBwdOn();
         }
       }
       else
@@ -850,6 +885,8 @@ public class BlockHelper
           acknoledgeNextBlockEnteringInAutoMode();
           
           _block.setState(isBackwardsLeaveInAutoMode() ? STATE_BLOCK_LEAVING_BWD : STATE_BLOCK_LEAVING);
+          String state = isBackwardsLeaveInAutoMode() ? "STATE_BLOCK_LEAVING_BWD" : "STATE_BLOCK_LEAVING";
+          System.out.println(state);
         }
         else
         {
@@ -915,10 +952,10 @@ public class BlockHelper
       }
       else
       {
-        _block.getSection().setTransportsLaunchBwdOn();
+        _block.getSection().setTransportsStandardBwdOn();
       }
 
-      if (_block.getNumberOfTrainsOnBlock() == 0)
+      if (_block.getSection().isTrainOnSection() == false)
       {
         _block.setState(STATE_BLOCK_FREE);
       }
@@ -1229,6 +1266,13 @@ public class BlockHelper
   static final int STATE_BLOCK_LOST_IN_ABYSS = 13;  
   static final int STATE_BLOCK_RETURNING_FROM_ABYSS = 14;  
 
+/*
+STATE_BLOCK_BEFORE_TRIGGER
+STATE_BLOCK_LEAVING_INTO_ABYSS
+STATE_BLOCK_LOST_IN_ABYSS
+STATE_BLOCK_RETURNING_FROM_ABYSS
+STATE_BLOCK_BEHIND_TRIGGER*/
+
   // The coaster operation mode  
   private static final int MODE_AUTO = 0;
   private static final int MODE_MANUAL_BLOCK = 1;
@@ -1239,6 +1283,7 @@ public class BlockHelper
   private static final int TYPE_LIFT = 1;
   private static final int TYPE_BRAKE = 2;
   private static final int TYPE_BRAKE_FWD_TO_BWD_SPIKE = 4;
+  private static final int TYPE_BRAKE_BWD_TO_FWD_SPIKE = 5;
   private static final int TYPE_STORAGE = 3;
   
   private static final int LEAVE_MODE_NONE = 0;

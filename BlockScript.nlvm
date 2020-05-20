@@ -93,7 +93,7 @@ public class BlockScript extends Script
     beforeStationBlock.addConditionBlockFree(reverse2Block);
     beforeStationBlock.addConditionChangeSwitch(reverse2Switch, 1, false);*/
 
-    blockA.setLeaveModeLaunchBwd();
+    blockA.setLeaveModeMoveBwd();
     blockA.selectBwdConditions();
     blockA.addConditionBlockFree(blockB);
     blockA.addConditionChangeSwitch(reverse1Switch, 1, false);
