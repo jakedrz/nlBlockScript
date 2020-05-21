@@ -38,8 +38,8 @@ public class BlockScript extends Script
     // Create all blocks... names and types must match with the block names from inside the Editor
     
     BlockHelper blockA = _blockController.createBrakeFwdToBwdSpikeBlock("Brake 1");
-    BlockHelper blockB = _blockController.createBrakeBlock("Brake 3");
-    //BlockHelper blockC = _blockController.createBrakeBlock("Brake 3");
+    BlockHelper blockB = _blockController.createBrakeFwdToBwdSpikeBlock("Brake 3");
+    BlockHelper blockC = _blockController.createBrakeBlock("Brake 4");
     BlockHelper stationBlock = _blockController.createStationBlock("Station");
   
     /////
@@ -84,42 +84,30 @@ public class BlockScript extends Script
     
     // The leave mode needs to match with the added conditions, e.g. that means if the leave mode is set to move forward,
     // there needs to be at least one condition in the forward queue and vice versa.
-    
-    /*
-    beforeStationBlock.setLeaveModeMoveFwd();
-    beforeStationBlock.selectFwdConditions();
-    beforeStationBlock.addConditionBlockFree(stationExitBlock);
-    beforeStationBlock.selectBwdConditions();
-    beforeStationBlock.addConditionBlockFree(reverse2Block);
-    beforeStationBlock.addConditionChangeSwitch(reverse2Switch, 1, false);*/
 
-    blockA.setLeaveModeMoveBwd();
+    blockA.setLeaveModeLaunchBwd();
     blockA.selectBwdConditions();
     blockA.addConditionBlockFree(blockB);
     blockA.addConditionChangeSwitch(reverse1Switch, 1, false);
-    blockA.addConditionChangeSwitch(reverse2Switch, 1, true);
+    blockA.addConditionChangeSwitch(reverse2Switch, 1, false);
 
     blockB.setLeaveModeMoveFwd();
     blockB.selectFwdConditions();
-    blockB.addConditionBlockFree(stationBlock);
+    blockB.addConditionBlockFree(blockC);
     blockB.addConditionChangeSwitch(reverse2Switch, 0, false);
+    blockB.addConditionChangeSwitch(reverse1Switch, 0, true);
     // blockB.selectFwdConditions();
     // blockB.addConditionBlockFree(blockA);
     // blockB.addConditionChangeSwitch(reverse1Switch, 1, false);
     
-
-
-    // blockC.setLeaveModeMoveFwd();
-    // blockC.selectFwdConditions();
-    // blockC.addConditionBlockFree(stationBlock);
-    //blockC.addConditionChangeSwitch(reverse2Switch, 1, false);
-    //blockC.selectBwdConditions();
-    //blockC.addConditionBlockFree(stationBlock);
+    blockC.setLeaveModeMoveFwd();
+    blockC.selectFwdConditions();
+    blockC.addConditionBlockFree(stationBlock);
 
     stationBlock.setLeaveModeMoveFwd();
     stationBlock.selectFwdConditions();
     stationBlock.addConditionBlockFree(blockA);
-    stationBlock.addConditionChangeSwitch(reverse1Switch, 0, true);
+    stationBlock.addConditionChangeSwitch(reverse1Switch, 0, false);
            
     return true;
   }

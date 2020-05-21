@@ -760,8 +760,11 @@ public class BlockHelper
       }
       break;
     case STATE_BLOCK_APPROACHING_BWD:
+      _block.getSection().setBrakesOff();
       if (_block.getSection().isTrainOnSection())
       {
+        _block.getSection().setTransportsLaunchBwdOn();
+        
         _block.setState(STATE_BLOCK_BEFORE_TRIGGER_BWD);
         System.out.println("STATE_BLOCK_BEFORE_TRIGGER_BWD");
       }
@@ -793,13 +796,14 @@ public class BlockHelper
       break;
     case STATE_BLOCK_BEFORE_TRIGGER_BWD:
     prepareNextBlockEntering();
-    _block.getSection().setBrakesTrim();
-    _block.getSection().setTransportsStandardBwdDependingOnBrake();
+    //_block.getSection().setBrakesTrim();
+    _block.getSection().setBrakesOff();
+    _block.getSection().setTransportsLaunchBwdOn();
     if (_block.getSection().isTrainBeforeBrakeTrigger())
     {
       //_block.setState(STATE_BLOCK_BEHIND_TRIGGER);
-      _block.getSection().setTransportsLaunchBwdOn(); 
-      _block.getSection().setBrakesOff();
+      //_block.getSection().setTransportsLaunchBwdOn(); 
+      //_block.getSection().setBrakesOff();
       _block.setState(STATE_BLOCK_LEAVING_INTO_ABYSS); 
       System.out.println("STATE_BLOCK_LEAVING_INTO_ABYSS");
     }
@@ -814,17 +818,27 @@ public class BlockHelper
       }
       break;
     case STATE_BLOCK_LOST_IN_ABYSS:
+    //if switches are prepared
       if(processNextBlockEntering())
       {
-        // _block.getSection().setTransportsLaunchBwdOn();
+      //if it's launching
         if(_leaveMode == LEAVE_MODE_LAUNCH_BWD || _leaveMode == LEAVE_MODE_LAUNCH_FWD)
+        {  //turn brakes off
           _block.getSection().setBrakesOff();
+          System.out.println("_leaveMode == LEAVE_MODE_LAUNCH_BWD || _leaveMode == LEAVE_MODE_LAUNCH_FWD");
+        }
+        else //if it's not launching
+        {  //turn brakes to trim
+          _block.getSection().setBrakesTrim();
+          System.out.println("setBrakesOn");
+        }
         if(_block.getSection().isTrainOnSection())
         {
           _block.setState(STATE_BLOCK_RETURNING_FROM_ABYSS);
           System.out.println("STATE_BLOCK_RETURNING_FROM_ABYSS");
         }
       }
+      //if switches are not prepared
       else
       {
         _block.getSection().setBrakesOn();
@@ -848,6 +862,7 @@ public class BlockHelper
         }
         else
         {
+          _block.getSection().setBrakesTrim();
           if (_leaveMode == LEAVE_MODE_MOVE_BWD)
           {
             _block.getSection().setTransportsStandardBwdDependingOnBrake();
@@ -856,7 +871,6 @@ public class BlockHelper
           {
             _block.getSection().setTransportsStandardFwdDependingOnBrake();
           }
-          _block.getSection().setBrakesTrim();
         }
         if(_block.getSection().isTrainBeforeBrakeTrigger() && (_leaveMode == LEAVE_MODE_LAUNCH_BWD || _leaveMode == LEAVE_MODE_MOVE_BWD))
         {
@@ -937,7 +951,7 @@ public class BlockHelper
         _block.getSection().setTransportsStandardFwdOn();
       }
       
-      if (_block.getNumberOfTrainsOnBlock() == 0)
+      if (_block.getSection().isTrainOnSection() == false)
       {
         _block.setState(STATE_BLOCK_FREE);
       }
@@ -1230,13 +1244,13 @@ public class BlockHelper
     block.registerState(STATE_BLOCK_FREE, "Free", Block.LAMP_OFF);
     
     block.registerState(STATE_BLOCK_APPROACHING, "Approaching", Block.LAMP_FLASHING);
-    block.registerState(STATE_BLOCK_APPROACHING_BWD, "Approaching", Block.LAMP_FLASHING);
+    block.registerState(STATE_BLOCK_APPROACHING_BWD, "Approaching BWD", Block.LAMP_FLASHING);
     
     block.registerState(STATE_BLOCK_LEAVING, "Leaving", Block.LAMP_ON);
-    block.registerState(STATE_BLOCK_LEAVING_BWD, "Leaving", Block.LAMP_ON);
+    block.registerState(STATE_BLOCK_LEAVING_BWD, "Leaving BWD", Block.LAMP_ON);
     
     block.registerState(STATE_BLOCK_BEFORE_TRIGGER, "Before Trigger", Block.LAMP_ON);
-    block.registerState(STATE_BLOCK_BEFORE_TRIGGER_BWD, "Before Trigger", Block.LAMP_ON);
+    block.registerState(STATE_BLOCK_BEFORE_TRIGGER_BWD, "Before Trigger BWD", Block.LAMP_ON);
     
     block.registerState(STATE_BLOCK_BEHIND_TRIGGER, "Behind Trigger", Block.LAMP_ON);
     
@@ -1245,6 +1259,10 @@ public class BlockHelper
     block.registerState(STATE_BLOCK_WAIT_FOR_ADVANCE, "Waiting for Advance", Block.LAMP_ON);
 
     block.registerState(STATE_BLOCK_IN_STATION, "In Station", Block.LAMP_ON);
+
+    block.registerState(STATE_BLOCK_LEAVING_INTO_ABYSS, "Entering Spike", Block.LAMP_ON);
+    block.registerState(STATE_BLOCK_LOST_IN_ABYSS, "In Spike", Block.LAMP_ON);
+    block.registerState(STATE_BLOCK_RETURNING_FROM_ABYSS, "Returning from Spike", Block.LAMP_ON);
   }
  
     
