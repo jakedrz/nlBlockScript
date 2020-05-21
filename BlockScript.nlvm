@@ -87,18 +87,14 @@ public class BlockScript extends Script
 
     blockA.setLeaveModeLaunchBwd();
     blockA.selectBwdConditions();
-    blockA.addConditionBlockFree(blockB);
     blockA.addConditionChangeSwitch(reverse1Switch, 1, false);
+    blockA.addConditionBlockFree(blockB);
     blockA.addConditionChangeSwitch(reverse2Switch, 1, false);
 
     blockB.setLeaveModeMoveFwd();
     blockB.selectFwdConditions();
-    blockB.addConditionBlockFree(blockC);
     blockB.addConditionChangeSwitch(reverse2Switch, 0, false);
-    blockB.addConditionChangeSwitch(reverse1Switch, 0, true);
-    // blockB.selectFwdConditions();
-    // blockB.addConditionBlockFree(blockA);
-    // blockB.addConditionChangeSwitch(reverse1Switch, 1, false);
+    blockB.addConditionBlockFree(blockC);
     
     blockC.setLeaveModeMoveFwd();
     blockC.selectFwdConditions();

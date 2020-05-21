@@ -741,21 +741,21 @@ public class BlockHelper
       _block.getSection().setBrakesOn();
       break;
     case STATE_BLOCK_APPROACHING:
+      _block.getSection().setBrakesOff();
       if (_block.getSection().isTrainOnSection())
       {
         _block.setState(STATE_BLOCK_BEFORE_TRIGGER);
-        System.out.println("STATE_BLOCK_BEFORE_TRIGGER");
       }
       else
       {
-        if (prepareNextBlockEntering())
-        {
-          _block.getSection().setBrakesOff();
-        }
-        else
-        {
-          _block.getSection().setBrakesOn();
-        }
+        // if (prepareNextBlockEntering())
+        // {
+        //   _block.getSection().setBrakesOff();
+        // }
+        // else
+        // {
+        //   _block.getSection().setBrakesOn();
+        // }
         _block.getSection().setTransportsOff();
       }
       break;
@@ -766,46 +766,57 @@ public class BlockHelper
         _block.getSection().setTransportsLaunchBwdOn();
         
         _block.setState(STATE_BLOCK_BEFORE_TRIGGER_BWD);
-        System.out.println("STATE_BLOCK_BEFORE_TRIGGER_BWD");
       }
       else
       {
-        if (prepareNextBlockEntering())
-        {
-          _block.getSection().setBrakesOff();
-        }
-        else
-        {
-          _block.getSection().setBrakesOn();
-        }
+        // if (prepareNextBlockEntering())
+        // {
+        //   _block.getSection().setBrakesOff();
+        // }
+        // else
+        // {
+        //   _block.getSection().setBrakesOn();
+        // }
         _block.getSection().setTransportsOff();
       }
       break;      
     case STATE_BLOCK_BEFORE_TRIGGER:
       prepareNextBlockEntering();
-      _block.getSection().setBrakesTrim();
-      _block.getSection().setTransportsStandardFwdDependingOnBrake();
+      if(_leaveMode == LEAVE_MODE_LAUNCH_BWD)
+      {
+        _block.getSection().setBrakesTrim();
+        _block.getSection().setTransportsStandardFwdDependingOnBrake();
+      }
+      else
+      {
+        _block.getSection().setBrakesOff();
+        _block.getSection().setTransportsLaunchFwdOn();
+      }
       if (_block.getSection().isTrainBehindBrakeTrigger())
       {
-        //_block.setState(STATE_BLOCK_BEHIND_TRIGGER);
         _block.getSection().setTransportsLaunchFwdOn(); 
         _block.getSection().setBrakesOff();
         _block.setState(STATE_BLOCK_LEAVING_INTO_ABYSS); 
-        System.out.println("STATE_BLOCK_LEAVING_INTO_ABYSS");
       }
       break;
     case STATE_BLOCK_BEFORE_TRIGGER_BWD:
     prepareNextBlockEntering();
-    //_block.getSection().setBrakesTrim();
-    _block.getSection().setBrakesOff();
-    _block.getSection().setTransportsLaunchBwdOn();
+    if(_leaveMode == LEAVE_MODE_LAUNCH_FWD)
+    {
+      _block.getSection().setBrakesTrim();
+      _block.getSection().setTransportsStandardBwdDependingOnBrake();
+    }
+    else
+    {
+      _block.getSection().setBrakesOff();
+      _block.getSection().setTransportsLaunchBwdOn();
+    }
     if (_block.getSection().isTrainBeforeBrakeTrigger())
     {
       //_block.setState(STATE_BLOCK_BEHIND_TRIGGER);
       //_block.getSection().setTransportsLaunchBwdOn(); 
       //_block.getSection().setBrakesOff();
       _block.setState(STATE_BLOCK_LEAVING_INTO_ABYSS); 
-      System.out.println("STATE_BLOCK_LEAVING_INTO_ABYSS");
     }
     break; 
     case STATE_BLOCK_LEAVING_INTO_ABYSS:
@@ -814,7 +825,6 @@ public class BlockHelper
       {
         _block.getSection().setTransportsOff();
         _block.setState(STATE_BLOCK_LOST_IN_ABYSS);
-        System.out.println("STATE_BLOCK_LOST_IN_ABYSS");
       }
       break;
     case STATE_BLOCK_LOST_IN_ABYSS:
@@ -825,17 +835,14 @@ public class BlockHelper
         if(_leaveMode == LEAVE_MODE_LAUNCH_BWD || _leaveMode == LEAVE_MODE_LAUNCH_FWD)
         {  //turn brakes off
           _block.getSection().setBrakesOff();
-          System.out.println("_leaveMode == LEAVE_MODE_LAUNCH_BWD || _leaveMode == LEAVE_MODE_LAUNCH_FWD");
         }
         else //if it's not launching
         {  //turn brakes to trim
           _block.getSection().setBrakesTrim();
-          System.out.println("setBrakesOn");
         }
         if(_block.getSection().isTrainOnSection())
         {
           _block.setState(STATE_BLOCK_RETURNING_FROM_ABYSS);
-          System.out.println("STATE_BLOCK_RETURNING_FROM_ABYSS");
         }
       }
       //if switches are not prepared
@@ -874,13 +881,11 @@ public class BlockHelper
         }
         if(_block.getSection().isTrainBeforeBrakeTrigger() && (_leaveMode == LEAVE_MODE_LAUNCH_BWD || _leaveMode == LEAVE_MODE_MOVE_BWD))
         {
-          System.out.println("STATE_BLOCK_BEHIND_TRIGGER");
           _block.setState(STATE_BLOCK_BEHIND_TRIGGER);
           // _block.getSection().setTransportsLaunchBwdOn();
         }
         if(_block.getSection().isTrainBehindBrakeTrigger() && (_leaveMode == LEAVE_MODE_LAUNCH_FWD || _leaveMode == LEAVE_MODE_MOVE_FWD))
         {
-          System.out.println("STATE_BLOCK_BEHIND_TRIGGER");
           _block.setState(STATE_BLOCK_BEHIND_TRIGGER);
           // _block.getSection().setTransportsLaunchBwdOn();
         }
@@ -900,7 +905,6 @@ public class BlockHelper
           
           _block.setState(isBackwardsLeaveInAutoMode() ? STATE_BLOCK_LEAVING_BWD : STATE_BLOCK_LEAVING);
           String state = isBackwardsLeaveInAutoMode() ? "STATE_BLOCK_LEAVING_BWD" : "STATE_BLOCK_LEAVING";
-          System.out.println(state);
         }
         else
         {
